@@ -39,6 +39,9 @@ def start():
       # check user interactions via the keyboard
       if stddraw.hasNextKeyTyped():  # check if the user has pressed a key
          key_typed = stddraw.nextKeyTyped()  # the most recently pressed key
+         key_typed = "left" if key_typed == "a" else key_typed
+         key_typed = "right" if key_typed == "d" else key_typed
+         key_typed = "down" if key_typed == "s" else key_typed
          # if the left arrow key has been pressed
          if key_typed == "left":
             # move the active tetromino left by one
