@@ -15,7 +15,7 @@ def start():
    info_grid_w = 4
    grid_h, grid_w = 20, 12 + info_grid_w
    # set the size of the drawing canvas
-   canvas_h, canvas_w = 45 * grid_h, 45 * grid_w
+   canvas_h, canvas_w = 34 * grid_h, 45 * grid_w
    stddraw.setCanvasSize(canvas_w, canvas_h) 
    # set the scale of the coordinate system
    stddraw.setXscale(-1.5, grid_w + 0.5)
