@@ -1,4 +1,4 @@
-from tkinter import E
+""" from tkinter import E """
 import lib.stddraw as stddraw  # stddraw is used as a basic graphics library
 from lib.picture import Picture  # used for displaying images
 from lib.color import Color  # used for coloring the game menu
@@ -15,7 +15,7 @@ def start():
    info_grid_w = 4
    grid_h, grid_w = 20, 12 + info_grid_w
    # set the size of the drawing canvas
-   canvas_h, canvas_w = 34 * grid_h, 45 * grid_w
+   canvas_h, canvas_w = 45 * grid_h, 45 * grid_w
    stddraw.setCanvasSize(canvas_w, canvas_h) 
    # set the scale of the coordinate system
    stddraw.setXscale(-1.5, grid_w + 0.5)
@@ -40,7 +40,7 @@ def start():
    # display a simple menu before opening the game
    # by using the display_game_menu function defined below
    is_game_scene = display_game_menu(grid_h, grid_w)
-   game_speed = 200
+   game_speed = 250
 
    # the main game loop (keyboard interaction for moving the tetromino) 
    while True:
