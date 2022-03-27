@@ -2,6 +2,7 @@ import lib.stddraw as stddraw  # stddraw is used as a basic graphics library
 from lib.color import Color # used for coloring the game grid
 from point import Point  # used for tile positions
 import numpy as np  # fundamental Python module for scientific computing
+import copy # needed for deep copying
 
 # Class used for modelling the game grid
 class GameGrid:
@@ -14,19 +15,37 @@ class GameGrid:
       self.tile_matrix = np.full((grid_h, grid_w), None)
       # create the tetromino that is currently being moved on the game grid
       self.current_tetromino = None
+      self.display_tetromino = None
+      self.prediction_tetromino = None
       # the game_over flag shows whether the game is over or not
       self.game_over = False
       # set the color used for the empty grid cells
-      self.empty_cell_color = Color(42, 69, 99)
+      self.empty_cell_color = Color(205,193,180)
       # set the colors used for the grid lines and the grid boundaries
-      self.line_color = Color(0, 100, 200) 
-      self.boundary_color = Color(0, 100, 200)
+      self.line_color = Color(187,172,161) 
+      self.boundary_color = Color(119, 110, 101)
+
+      # use this for the information part of the grid: Color(119, 110, 101)
+           
       # thickness values used for the grid lines and the boundaries
-      self.line_thickness = 0.002
-      self.box_thickness = 10 * self.line_thickness
+      self.line_thickness = 0.008
+      self.box_thickness = 1 * self.line_thickness
+
+   def predict(self):
+      self.prediction_tetromino = copy.deepcopy(self.current_tetromino)
+      while self.prediction_tetromino.can_be_moved("down", self):
+         self.prediction_tetromino.move("down", self)
+      self.prediction_tetromino.draw(pred = True)
+
+   # Method used for resetting the game environment
+   def reset_scene(self):
+      self.tile_matrix = np.full((self.grid_height, self.grid_width), None)
+      self.current_tetromino = None
+      self.display_tetromino = None
+      self.game_over = False
 
    # Method used for displaying the game grid
-   def display(self):
+   def display(self, speed=100):
       # clear the background to empty_cell_color
       stddraw.clear(self.empty_cell_color)
       # draw the game grid
@@ -34,11 +53,17 @@ class GameGrid:
       # draw the current/active tetromino if it is not None (the case when the 
       # game grid is updated)
       if self.current_tetromino is not None:
+         self.predict()
          self.current_tetromino.draw()
+      if self.display_tetromino is not None:
+         self.display_tetromino.bottom_left_cell = Point()
+         self.display_tetromino.bottom_left_cell.y = 2
+         self.display_tetromino.bottom_left_cell.x = self.grid_width + 1
+         self.display_tetromino.draw()
       # draw a box around the game grid 
       self.draw_boundaries()
       # show the resulting drawing with a pause duration = 250 ms
-      stddraw.show(100)
+      stddraw.show(speed)
          
    # Method for drawing the cells and the lines of the game grid
    def draw_grid(self):
@@ -68,8 +93,8 @@ class GameGrid:
       # for the bounding box as its lines lie on the boundaries of the canvas)
       stddraw.setPenRadius(self.box_thickness)
       # the coordinates of the bottom left corner of the game grid
-      pos_x, pos_y = -0.5, -0.5
-      stddraw.rectangle(pos_x, pos_y, self.grid_width, self.grid_height)
+      pos_x, pos_y = -0.6, -0.6
+      stddraw.rectangle(pos_x, pos_y, self.grid_width + 0.1, self.grid_height + 0.1)
       stddraw.setPenRadius()  # reset the pen radius to its default value
 
    # Method used for checking whether the grid cell with given row and column 
@@ -90,6 +115,30 @@ class GameGrid:
       if col < 0 or col >= self.grid_width:
          return False
       return True
+
+   def is_row_full(self, row):
+      for col in range(self.grid_width):
+         if self.tile_matrix[row][col] is None:
+            return False
+      return True
+   #remove if row is full
+
+   def remove_row(self, row):
+      for col in range(self.grid_width):
+         self.tile_matrix[row][col] = None
+
+   def shift_rows_down(self, row):
+      for i in range(row + 1, self.grid_height):
+         for col in range(self.grid_width):
+            print('col:', col)
+            self.tile_matrix[i - 1][col] = self.tile_matrix[i][col]
+            self.tile_matrix[i][col] = None
+
+   def remove_full_rows(self):
+      for row in range(self.grid_height):
+         while self.is_row_full(row):
+            self.remove_row(row)
+            self.shift_rows_down(row)
 
    # Method that locks the tiles of the landed tetromino on the game grid while
    # checking if the game is over due to having tiles above the topmost grid row.
@@ -112,5 +161,6 @@ class GameGrid:
                # the game is over if any placed tile is above the game grid
                else:
                   self.game_over = True
+      self.remove_full_rows()
       # return the game_over flag
       return self.game_over
