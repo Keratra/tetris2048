@@ -3,6 +3,7 @@ from lib.color import Color # used for coloring the game grid
 from point import Point  # used for tile positions
 import numpy as np  # fundamental Python module for scientific computing
 import copy # needed for deep copying
+from tile import Tile  # used for transporting tiles in merging process
 
 # Class used for modelling the game grid
 class GameGrid:
@@ -30,6 +31,72 @@ class GameGrid:
       # thickness values used for the grid lines and the boundaries
       self.line_thickness = 0.008
       self.box_thickness = 1 * self.line_thickness
+
+   # check four neighbors of the tile to see wether they are empty or not and drop if it is empty
+   def drop_isolated_piece(self):
+      for row in range(1, self.grid_height):
+         for col in range(self.grid_width - 1):
+            if row == 0:
+               return False
+            if self.tile_matrix[row][col] is not None:
+               if col == 0:
+                  if self.tile_matrix[row-1][col] is None and self.tile_matrix[row][col+1] is None:
+                     # drop the piece
+                     while self.tile_matrix[row-1][col] is None and row-1 >= 0:
+                        self.tile_matrix[row-1][col] = Tile()
+                        print(self.tile_matrix[row-1][col].number)
+                        self.tile_matrix[row-1][col].number = self.tile_matrix[row][col].number
+                        self.tile_matrix[row][col] = None
+                        row -= 1
+               if col == self.grid_width - 1:
+                  if self.tile_matrix[row-1][col] is None and self.tile_matrix[row][col-1] is None:
+                     # drop the piece
+                     while self.tile_matrix[row-1][col] is None and row-1 >= 0:
+                        self.tile_matrix[row-1][col] = Tile()
+                        self.tile_matrix[row-1][col].number = self.tile_matrix[row][col].number
+                        self.tile_matrix[row][col] = None
+                        row -= 1
+               else:
+                  if self.tile_matrix[row-1][col] is None and self.tile_matrix[row][col-1] is None and self.tile_matrix[row][col+1] is None:
+                     # drop the piece
+                     while self.tile_matrix[row-1][col] is None and row-1 >= 0:
+                        self.tile_matrix[row-1][col] = Tile()
+                        self.tile_matrix[row-1][col].number = self.tile_matrix[row][col].number
+                        self.tile_matrix[row][col] = None
+                        row -= 1
+
+
+   # lower the tiles in a column above the given row by one row after merging
+   def lower_row(self, row1, col1):
+      for row in range(row1 + 1, self.grid_height):
+         if self.tile_matrix[row][col1] is not None:
+            self.tile_matrix[row-1][col1] = self.tile_matrix[row][col1]
+            self.tile_matrix[row][col1] = None
+
+   def merge_tiles(self, row1,col1):
+      if self.tile_matrix[row1][col1] is not None:
+         if self.tile_matrix[row1][col1].number == self.tile_matrix[row1+1][col1].number:
+            self.tile_matrix[row1][col1].number *= 2
+            self.tile_matrix[row1+1][col1] = None
+            self.lower_row(row1+1, col1)
+            while self.tile_matrix[row1-1][col1] is None and row1-1 >= 0:
+               self.tile_matrix[row1-1][col1] = Tile()
+               self.tile_matrix[row1-1][col1].number = self.tile_matrix[row1][col1].number
+               self.tile_matrix[row1][col1] = None
+               row1 -= 1
+               self.lower_row(row1+1, col1)
+            return True
+      return False
+
+   def merge_possible(self):
+      for row in range(self.grid_height - 1):
+         for col in range(self.grid_width):
+            below_check = self.tile_matrix[row][col] is not None
+            after_check = self.tile_matrix[row+1][col] is not None
+            if below_check and after_check:
+               if self.tile_matrix[row][col].number == self.tile_matrix[row+1][col].number:
+                  return True, row, col
+      return False, -1, -1
 
    def predict(self):
       self.prediction_tetromino = copy.deepcopy(self.current_tetromino)
@@ -130,7 +197,6 @@ class GameGrid:
    def shift_rows_down(self, row):
       for i in range(row + 1, self.grid_height):
          for col in range(self.grid_width):
-            print('col:', col)
             self.tile_matrix[i - 1][col] = self.tile_matrix[i][col]
             self.tile_matrix[i][col] = None
 
@@ -161,6 +227,14 @@ class GameGrid:
                # the game is over if any placed tile is above the game grid
                else:
                   self.game_over = True
+
+      # the merge process
+      is_merge_possible, row1, col1 = self.merge_possible()
+      while is_merge_possible:
+         self.merge_tiles(row1, col1)
+         is_merge_possible, row1, col1 = self.merge_possible()
+      self.drop_isolated_piece()
+      # after merging possible tiles, clear full lines
       self.remove_full_rows()
       # return the game_over flag
       return self.game_over

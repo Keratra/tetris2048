@@ -1,4 +1,3 @@
-""" from tkinter import E """
 import lib.stddraw as stddraw  # stddraw is used as a basic graphics library
 from lib.picture import Picture  # used for displaying images
 from lib.color import Color  # used for coloring the game menu
@@ -6,6 +5,11 @@ import os  # the os module is used for file and directory operations
 from game_grid import GameGrid # the class for modeling the game grid
 from tetromino import Tetromino # the class for modeling the tetrominoes
 import random # used for creating tetrominoes with random types/shapes
+
+# Group: Heavenly Celestials
+# ->         Kerem Kaya
+# -> Mehmet Talha Bozan
+# ->         Pelin Mişe
 
 # MAIN FUNCTION OF THE PROGRAM
 #-------------------------------------------------------------------------------

@@ -3,7 +3,7 @@ from point import Point  # used for tile positions
 import copy as cp  # the copy module is used for copying tiles and positions
 import random  # module for generating random values/permutations
 import numpy as np  # the fundamental Python module for scientific computing
-
+import lib.stddraw as stddraw  # stddraw is used as a basic graphics library
 # Class used for modeling tetrominoes with 3 out of 7 different types/shapes 
 # as (I, O and Z)
 class Tetromino:
