@@ -9,7 +9,7 @@ class Tile:
    # the value of the boundary thickness (for the boxes around the tiles)
    boundary_thickness = 0.004
    # font family and size used for displaying the tile number
-   font_family, font_size = "Arial", 24
+   font_family = "Aharoni"
 
    # Constructor that creates a tile with 2 as the number on it
    def __init__(self):
@@ -18,7 +18,49 @@ class Tile:
       # set the colors of the tile
       self.background_color = Color(238, 228, 218) # background (tile) color
       self.foreground_color = Color(119, 110, 101) # foreground (number) color
-      self.box_color = Color(187,172,161) # box (boundary) color
+      self.box_color = Color(119, 110, 101) # box (boundary) color
+      self.font_size = 24
+      self.is_connected = False
+
+   # change background color according to the number on the tile
+   def update_color(self):
+      if self.number == 2:
+         self.font_size = 24
+         return Color(238, 228, 218)
+      elif self.number == 4:
+         self.font_size = 24
+         return Color(238, 225, 201)
+      elif self.number == 8:
+         self.font_size = 24
+         return Color(243, 178, 122)
+      elif self.number == 16:
+         self.font_size = 24
+         return Color(246, 150, 100)
+      elif self.number == 32:
+         self.font_size = 24
+         return Color(247, 124, 95)
+      elif self.number == 64:
+         self.font_size = 24
+         return Color(247, 95, 59)
+      elif self.number == 128:
+         self.font_size = 20
+         return Color(237, 208, 115)
+      elif self.number == 256:
+         self.font_size = 20
+         return Color(237, 204, 98)
+      elif self.number == 512:
+         self.font_size = 20
+         return Color(237, 201, 80)
+      elif self.number == 1024:
+         self.font_size = 16
+         return Color(237, 197, 63)
+      elif self.number == 2048:
+         self.font_size = 16
+         return Color(237, 194, 46)
+      else:
+         self.foreground_color = Color(240,240,240)
+         self.font_size = 16
+         return Color(60, 58, 51)
 
    # Method for drawing the tile
    def draw(self, position, length = 1, is_pred = False):
@@ -32,12 +74,15 @@ class Tile:
          stddraw.square(position.x, position.y, length / 2)
          stddraw.setPenRadius()  # reset the pen radius to its default value
          # draw the number on the tile
+         
          stddraw.setPenColor(self.foreground_color)
          stddraw.setFontFamily(Tile.font_family)
-         stddraw.setFontSize(Tile.font_size)
+         stddraw.setFontSize(self.font_size)
          stddraw.text(position.x, position.y, str(self.number))
+         stddraw.setPenRadius()  # reset the pen radius to its default value
          return
       # draw the tile as a filled square
+      self.background_color = self.update_color()
       stddraw.setPenColor(self.background_color)
       stddraw.filledSquare(position.x, position.y, length / 2)
       # draw the bounding box around the tile as a square
@@ -48,5 +93,6 @@ class Tile:
       # draw the number on the tile
       stddraw.setPenColor(self.foreground_color)
       stddraw.setFontFamily(Tile.font_family)
-      stddraw.setFontSize(Tile.font_size)
+      stddraw.setFontSize(self.font_size)
       stddraw.text(position.x, position.y, str(self.number))
+      stddraw.setPenRadius()  # reset the pen radius to its default value

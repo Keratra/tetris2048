@@ -20,6 +20,7 @@ class GameGrid:
       self.prediction_tetromino = None
       # the game_over flag shows whether the game is over or not
       self.game_over = False
+      self.score = 0
       # set the color used for the empty grid cells
       self.empty_cell_color = Color(205,193,180)
       # set the colors used for the grid lines and the grid boundaries
@@ -27,44 +28,56 @@ class GameGrid:
       self.boundary_color = Color(119, 110, 101)
 
       # use this for the information part of the grid: Color(119, 110, 101)
-           
+      
       # thickness values used for the grid lines and the boundaries
       self.line_thickness = 0.008
       self.box_thickness = 1 * self.line_thickness
 
-   # check four neighbors of the tile to see wether they are empty or not and drop if it is empty
-   def drop_isolated_piece(self):
-      for row in range(1, self.grid_height):
-         for col in range(self.grid_width - 1):
-            if row == 0:
-               return False
+   def eliminate_floating_pieces(self):
+      for row in range(self.grid_height):
+         for col in range(self.grid_width):
             if self.tile_matrix[row][col] is not None:
-               if col == 0:
-                  if self.tile_matrix[row-1][col] is None and self.tile_matrix[row][col+1] is None:
-                     # drop the piece
-                     while self.tile_matrix[row-1][col] is None and row-1 >= 0:
-                        self.tile_matrix[row-1][col] = Tile()
-                        print(self.tile_matrix[row-1][col].number)
-                        self.tile_matrix[row-1][col].number = self.tile_matrix[row][col].number
-                        self.tile_matrix[row][col] = None
-                        row -= 1
-               if col == self.grid_width - 1:
-                  if self.tile_matrix[row-1][col] is None and self.tile_matrix[row][col-1] is None:
-                     # drop the piece
-                     while self.tile_matrix[row-1][col] is None and row-1 >= 0:
-                        self.tile_matrix[row-1][col] = Tile()
-                        self.tile_matrix[row-1][col].number = self.tile_matrix[row][col].number
-                        self.tile_matrix[row][col] = None
-                        row -= 1
-               else:
-                  if self.tile_matrix[row-1][col] is None and self.tile_matrix[row][col-1] is None and self.tile_matrix[row][col+1] is None:
-                     # drop the piece
-                     while self.tile_matrix[row-1][col] is None and row-1 >= 0:
-                        self.tile_matrix[row-1][col] = Tile()
-                        self.tile_matrix[row-1][col].number = self.tile_matrix[row][col].number
-                        self.tile_matrix[row][col] = None
-                        row -= 1
+               self.tile_matrix[row][col].is_connected = False
+      self.check_connections()
+      for row in range(self.grid_height):
+         for col in range(self.grid_width):
+            if self.tile_matrix[row][col] is not None:
+               if self.tile_matrix[row][col].is_connected == False:
+                  self.drop_tile(row, col)
 
+   def check_connections(self):
+      # tiles at the ground are connected
+      for col in range(self.grid_width):
+         if self.tile_matrix[self.grid_height-1][col] is not None:
+            self.tile_matrix[0][col].is_connected = True
+      # check all the tiles above the ground to see if they're connected
+      for row in range(1, self.grid_height):
+         for col in range(self.grid_width):
+            if self.tile_matrix[row][col] is not None:
+               # check the below neighbor
+               if self.tile_matrix[row - 1][col] is not None:
+                  if self.tile_matrix[row - 1][col].is_connected == True:
+                     self.tile_matrix[row][col].is_connected = True
+                     continue
+               # for tiles that are next to the left of the grid
+               if col == 0:
+                  if self.tile_matrix[row][col + 1] is not None:
+                     if self.tile_matrix[row][col + 1].is_connected == True:
+                        self.tile_matrix[row][col].is_connected = True
+                        continue
+               # for tiles that are next to the right of the grid
+               if col == self.grid_width - 1:
+                  if self.tile_matrix[row][col - 1] is not None:
+                     if self.tile_matrix[row][col - 1].is_connected == True:
+                        self.tile_matrix[row][col].is_connected = True
+                        continue
+   
+   # drop the specified tile to the ground
+   def drop_tile(self, row, col):
+      while self.tile_matrix[row-1][col] is None and row-1 >= 0:
+         self.tile_matrix[row-1][col] = copy.deepcopy(self.tile_matrix[row][col])
+         self.tile_matrix[row][col] = None
+         row -= 1
 
    # lower the tiles in a column above the given row by one row after merging
    def lower_row(self, row1, col1):
@@ -75,17 +88,19 @@ class GameGrid:
 
    def merge_tiles(self, row1,col1):
       if self.tile_matrix[row1][col1] is not None:
-         if self.tile_matrix[row1][col1].number == self.tile_matrix[row1+1][col1].number:
-            self.tile_matrix[row1][col1].number *= 2
-            self.tile_matrix[row1+1][col1] = None
-            self.lower_row(row1+1, col1)
-            while self.tile_matrix[row1-1][col1] is None and row1-1 >= 0:
-               self.tile_matrix[row1-1][col1] = Tile()
-               self.tile_matrix[row1-1][col1].number = self.tile_matrix[row1][col1].number
-               self.tile_matrix[row1][col1] = None
-               row1 -= 1
+         if self.tile_matrix[row1][col1] is not None and self.tile_matrix[row1+1][col1] is not None:
+            if row1+1 <= self.grid_height and self.tile_matrix[row1][col1].number == self.tile_matrix[row1+1][col1].number:
+               self.tile_matrix[row1][col1].number *= 2
+               self.score += self.tile_matrix[row1][col1].number
+               self.tile_matrix[row1+1][col1] = None
                self.lower_row(row1+1, col1)
-            return True
+               while self.tile_matrix[row1-1][col1] is None and row1-1 >= 0:
+                  self.tile_matrix[row1-1][col1] = Tile()
+                  self.tile_matrix[row1-1][col1].number = self.tile_matrix[row1][col1].number
+                  self.tile_matrix[row1][col1] = None
+                  row1 -= 1
+                  self.lower_row(row1+1, col1)
+               return True
       return False
 
    def merge_possible(self):
@@ -109,6 +124,7 @@ class GameGrid:
       self.tile_matrix = np.full((self.grid_height, self.grid_width), None)
       self.current_tetromino = None
       self.display_tetromino = None
+      self.score = 0
       self.game_over = False
 
    # Method used for displaying the game grid
@@ -131,7 +147,13 @@ class GameGrid:
       self.draw_boundaries()
       # show the resulting drawing with a pause duration = 250 ms
       stddraw.show(speed)
-         
+   
+   def display_score(self):
+      stddraw.setPenRadius(24)
+      stddraw.setPenColor(Color(255,255,255))
+      stddraw.text(self.grid_width + 1, self.grid_height - 2, "Score:"+ str(self.score))
+
+
    # Method for drawing the cells and the lines of the game grid
    def draw_grid(self):
       # for each cell of the game grid
@@ -140,6 +162,7 @@ class GameGrid:
             # draw the tile if the grid cell is occupied by a tile
             if self.tile_matrix[row][col] is not None:
                self.tile_matrix[row][col].draw(Point(col, row))
+      self.display_score()
       # draw the inner lines of the grid
       stddraw.setPenColor(self.line_color)
       stddraw.setPenRadius(self.line_thickness)
@@ -192,6 +215,7 @@ class GameGrid:
 
    def remove_row(self, row):
       for col in range(self.grid_width):
+         self.score += self.tile_matrix[row][col].number
          self.tile_matrix[row][col] = None
 
    def shift_rows_down(self, row):
@@ -227,13 +251,15 @@ class GameGrid:
                # the game is over if any placed tile is above the game grid
                else:
                   self.game_over = True
+                  self.score = 0
 
       # the merge process
+      self.eliminate_floating_pieces()
       is_merge_possible, row1, col1 = self.merge_possible()
       while is_merge_possible:
          self.merge_tiles(row1, col1)
          is_merge_possible, row1, col1 = self.merge_possible()
-      self.drop_isolated_piece()
+         self.eliminate_floating_pieces()
       # after merging possible tiles, clear full lines
       self.remove_full_rows()
       # return the game_over flag

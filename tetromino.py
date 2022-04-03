@@ -147,7 +147,7 @@ class Tetromino:
        # rotate the tile matrix clockwise by 90 degrees
        self.tile_matrix = np.array(list(zip(*self.tile_matrix[::-1])))
        # check if the tetromino can be rotated or not
-       if not self.can_be_rotated(game_grid):
+       if not self.rotate_control(game_grid):
            # rotate the tile matrix counterclockwise by 90 degrees
            self.tile_matrix = np.array(list(zip(*self.tile_matrix))[::-1])
            return False
@@ -157,59 +157,29 @@ class Tetromino:
        # rotate the tile matrix clockwise by 90 degrees
        self.tile_matrix = np.array(list(zip(*self.tile_matrix))[::-1])
        # check if the tetromino can be rotated or not
-       if not self.can_be_rotated(game_grid):
+       if not self.rotate_control(game_grid):
            # rotate the tile matrix counterclockwise by 90 degrees
            self.tile_matrix = np.array(list(zip(*self.tile_matrix[::-1])))
            return False
        return True
 
-   def can_be_rotated(self, game_grid):
-      n = len(self.tile_matrix)  # n = number of rows = number of columns
-               
-      # direction = down --> check the bottommost tile of each column
-      for col in range(n):
-         for row in range(n - 1, -1, -1):
-            if self.tile_matrix[row][col] is not None:
-               leftmost = self.get_cell_position(row, col)
-               # tetromino cannot go left if any leftmost tile is at x = 0
-               if leftmost.x == 0:
+   def rotate_control(self, game_grid):
+      tiles_to_check, blc_position = self.get_min_bounded_tile_matrix(True)
+      # lock the tiles of the current tetromino (tiles_to_lock) on the game grid 
+      n_rows, n_cols = len(tiles_to_check), len(tiles_to_check[0])
+      for col in range(n_cols):
+         for row in range(n_rows):            
+            # place each tile onto the game grid
+            if tiles_to_check[row][col] is not None:
+               # compute the position of the tile on the game grid
+               pos = Point()
+               pos.x = blc_position.x + col
+               pos.y = blc_position.y + (n_rows - 1) - row
+               if not game_grid.is_inside(pos.y, pos.x):
                   return False
-               # skip each row whose leftmost tile is out of the game grid 
-               # (possible for newly entered tetrominoes to the game grid)
-               if leftmost.y >= self.grid_height:
-                  break
-               # the tetromino cannot go left if the grid cell on the left of 
-               # any leftmost tile is occupied
-               if game_grid.is_occupied(leftmost.y, leftmost.x - 1):
+               if game_grid.tile_matrix[pos.y][pos.x] is not None:
                   return False
-               
-               rightmost = self.get_cell_position(row, n - 1 - col)
-               # the tetromino cannot go right if any rightmost tile is at
-               # x = grid_width - 1
-               if rightmost.x == self.grid_width - 1:
-                  return False
-               # skip each row whose rightmost tile is out of the game grid 
-               # (possible for newly entered tetrominoes to the game grid)
-               if rightmost.y >= self.grid_height:
-                  break
-               # the tetromino cannot go right if the grid cell on the right 
-               # of any rightmost tile is occupied
-               if game_grid.is_occupied(rightmost.y, rightmost.x + 1):
-                  return False
-               
-               bottommost = self.get_cell_position(row, col)
-               # skip each column whose bottommost tile is out of the grid 
-               # (possible for newly entered tetrominoes to the game grid)
-               if bottommost.y > self.grid_height:
-                  break
-               # tetromino cannot go down if any bottommost tile is at y = 0
-               if bottommost.y == 0:
-                  return False 
-               # or the grid cell below any bottommost tile is occupied
-               if game_grid.is_occupied(bottommost.y - 1, bottommost.x):
-                  return False
-               break  # end the inner for loop
-      return True  # tetromino can be rotated in the given direction
+      return True
 
    # Method for moving the tetromino in a given direction by 1 on the game grid
    def move(self, direction, game_grid):
