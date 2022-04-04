@@ -134,25 +134,6 @@ def start():
          # clear the queue of the pressed keys for an actual restart
          stddraw.clearKeysTyped()
 
-""" another method for displaying the next tetromino that doesn't work as of now
-def display_next_tetromino(grid_height, grid_width, game_grid, tetromino_type):
-   display_tetromino = create_tetromino(tetromino_type)
-   tiles_to_display = display_tetromino.get_min_bounded_tile_matrix(False)
-   # lock the tiles of the current tetromino (tiles_to_lock) on the game grid 
-   n_rows, n_cols = len(tiles_to_display), len(tiles_to_display[0])
-   for col in range(n_cols):
-      for row in range(n_rows):
-         # place each tile onto the game grid
-         if tiles_to_display[row][col] is not None:
-            # compute the position of the tile on the game grid
-            pos = Point()
-            pos.x = 11 + col
-            pos.y = grid_height - 2 + (n_rows - 1) - row
-            tiles_to_display[row][col].draw(position=pos, length=1.1)
-   stddraw.show(1)
-   return True
-"""
-
 # Function for generating the random shape for the next tetromino
 def generate_next_tetromino_type():
    # type (shape) of the tetromino is determined randomly
