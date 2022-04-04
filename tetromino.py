@@ -125,7 +125,7 @@ class Tetromino:
          return copy, blc_position
       
    # Method for drawing the tetromino on the game grid
-   def draw(self, pred = False):
+   def draw(self, pred = False, next_display=False):
       n = len(self.tile_matrix)  # n = number of rows = number of columns
       for row in range(n):
          for col in range(n):
@@ -135,7 +135,11 @@ class Tetromino:
                position = self.get_cell_position(row, col)
                # draw only the tiles that are inside the game grid
                if position.y < self.grid_height:
-                  self.tile_matrix[row][col].draw(position, is_pred=pred) 
+                  if next_display:
+                     self.tile_matrix[row][col].number = 64
+                     self.tile_matrix[row][col].draw(position, next=next_display)
+                  else:
+                     self.tile_matrix[row][col].draw(position, is_pred=pred) 
 
    # Method for moving the tetromino until it cannot be moved any further
    def hard_drop(self, grid):

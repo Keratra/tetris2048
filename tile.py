@@ -63,36 +63,26 @@ class Tile:
          return Color(60, 58, 51)
 
    # Method for drawing the tile
-   def draw(self, position, length = 1, is_pred = False):
+   def draw(self, position, length = 1.05, is_pred = False, next = False):
+      # draw the tile as a filled square
       if is_pred:
-         # draw the tile as a filled square
          stddraw.setPenColor(Color(42, 69, 99))
-         stddraw.filledSquare(position.x, position.y, length / 2)
-         # draw the bounding box around the tile as a square
+      else:
+         self.background_color = self.update_color()
+         stddraw.setPenColor(self.background_color)
+      stddraw.filledSquare(position.x, position.y, length / 2)
+      # draw the bounding box around the tile as a square
+      if is_pred:
          stddraw.setPenColor(Color(151, 178, 199))
-         stddraw.setPenRadius(Tile.boundary_thickness)
-         stddraw.square(position.x, position.y, length / 2)
-         stddraw.setPenRadius()  # reset the pen radius to its default value
+      else:
+         stddraw.setPenColor(self.box_color)
+      stddraw.setPenRadius(Tile.boundary_thickness)
+      stddraw.square(position.x, position.y, length / 2)
+      stddraw.setPenRadius()  # reset the pen radius to its default value
+      if not next:
          # draw the number on the tile
-         
          stddraw.setPenColor(self.foreground_color)
          stddraw.setFontFamily(Tile.font_family)
          stddraw.setFontSize(self.font_size)
          stddraw.text(position.x, position.y, str(self.number))
-         stddraw.setPenRadius()  # reset the pen radius to its default value
-         return
-      # draw the tile as a filled square
-      self.background_color = self.update_color()
-      stddraw.setPenColor(self.background_color)
-      stddraw.filledSquare(position.x, position.y, length / 2)
-      # draw the bounding box around the tile as a square
-      stddraw.setPenColor(self.box_color)
-      stddraw.setPenRadius(Tile.boundary_thickness)
-      stddraw.square(position.x, position.y, length / 2)
-      stddraw.setPenRadius()  # reset the pen radius to its default value
-      # draw the number on the tile
-      stddraw.setPenColor(self.foreground_color)
-      stddraw.setFontFamily(Tile.font_family)
-      stddraw.setFontSize(self.font_size)
-      stddraw.text(position.x, position.y, str(self.number))
       stddraw.setPenRadius()  # reset the pen radius to its default value

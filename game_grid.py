@@ -130,7 +130,7 @@ class GameGrid:
    # Method used for displaying the game grid
    def display(self, speed=100):
       # clear the background to empty_cell_color
-      stddraw.clear(self.empty_cell_color)
+      stddraw.clear(Color(169, 150, 151))
       # draw the game grid
       self.draw_grid()
       # draw the current/active tetromino if it is not None (the case when the 
@@ -140,22 +140,30 @@ class GameGrid:
          self.current_tetromino.draw()
       if self.display_tetromino is not None:
          self.display_tetromino.bottom_left_cell = Point()
-         self.display_tetromino.bottom_left_cell.y = 2
+         self.display_tetromino.bottom_left_cell.y = self.grid_height - 4
          self.display_tetromino.bottom_left_cell.x = self.grid_width + 1
-         self.display_tetromino.draw()
+         stddraw.text(self.grid_width + 2, self.grid_height - 5.15, "Next Piece")
+         self.display_tetromino.draw(next_display=True)
       # draw a box around the game grid 
       self.draw_boundaries()
       # show the resulting drawing with a pause duration = 250 ms
       stddraw.show(speed)
    
    def display_score(self):
-      stddraw.setPenRadius(24)
-      stddraw.setPenColor(Color(255,255,255))
-      stddraw.text(self.grid_width + 1, self.grid_height - 2, "Score:"+ str(self.score))
+      stddraw.setFontSize(28)
+      stddraw.setPenColor(Color(69, 60, 51))
+      stddraw.text(self.grid_width + 2, self.grid_height // 2, "Score")
+      stddraw.setFontFamily("Arial")
+      stddraw.text(self.grid_width + 2, self.grid_height // 2 - 0.8, str(self.score))
+      stddraw.setFontFamily("Aharoni")
 
 
    # Method for drawing the cells and the lines of the game grid
    def draw_grid(self):
+      start_x, end_x = -0.5, self.grid_width - 0.5
+      start_y, end_y = -0.5, self.grid_height - 0.5
+      stddraw.setPenColor(self.empty_cell_color)
+      stddraw.filledRectangle(start_x,start_y,end_x+0.5,end_y+0.5)
       # for each cell of the game grid
       for row in range(self.grid_height):
          for col in range(self.grid_width):
@@ -184,7 +192,7 @@ class GameGrid:
       stddraw.setPenRadius(self.box_thickness)
       # the coordinates of the bottom left corner of the game grid
       pos_x, pos_y = -0.6, -0.6
-      stddraw.rectangle(pos_x, pos_y, self.grid_width + 0.1, self.grid_height + 0.1)
+      stddraw.rectangle(pos_x, pos_y, self.grid_width + 0.15, self.grid_height + 0.15)
       stddraw.setPenRadius()  # reset the pen radius to its default value
 
    # Method used for checking whether the grid cell with given row and column 

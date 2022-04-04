@@ -1,51 +1,39 @@
 import lib.stddraw as stddraw  # stddraw is used as a basic graphics library
-from lib.picture import Picture  # used for displaying images
-from lib.color import Color  # used for coloring the game menu
-import os  # the os module is used for file and directory operations
 from game_grid import GameGrid # the class for modeling the game grid
 from tetromino import Tetromino # the class for modeling the tetrominoes
 import random # used for creating tetrominoes with random types/shapes
+import numpy as np
+from tile import Tile
+from point import Point
+from scenes import *
 from pygame import mixer
 
 # Group: Heavenly Celestials
-# ->         Kerem Kaya
+# ->    Kerem Kaya
 # -> Mehmet Talha Bozan
-# ->         Pelin Mişe
+# ->    Pelin Mişe
 
 # MAIN FUNCTION OF THE PROGRAM
 #-------------------------------------------------------------------------------
 # Main function where this program starts execution
 def start():
-   # set the dimensions of the game grid
-   info_grid_w = 4
-   grid_h, grid_w = 20, 10 + info_grid_w
-   # set the size of the drawing canvas
-   canvas_h, canvas_w = 45 * grid_h, 45 * grid_w
-   stddraw.setCanvasSize(canvas_w, canvas_h) 
-   # set the scale of the coordinate system
-   stddraw.setXscale(-1.5, grid_w + 0.5)
-   stddraw.setYscale(-1.5, grid_h + 0.5)
-
-   # set the dimension values stored and used in the Tetromino class
-   Tetromino.grid_height = grid_h
-   Tetromino.grid_width = grid_w - info_grid_w
+   # create the canvas for the game
+   grid_h, grid_w, grid = create_canvas(the_grid_height=20, the_grid_width=10, info_grid_width=4)
    
-   # create the game grid
-   grid = GameGrid(grid_h, grid_w - info_grid_w)
    # create the first tetromino to enter the game grid 
    # by using the create_tetromino function defined below
-   first_tetromino_shape = generate_next_tetromino_type(grid_h, grid_w)
-   current_tetromino = create_tetromino(grid_h, grid_w, first_tetromino_shape)
+   first_tetromino_shape = generate_next_tetromino_type()
+   current_tetromino = create_tetromino(first_tetromino_shape)
    grid.current_tetromino = current_tetromino
    # create and show the next tetromino as a display
-   next_tetromino_shape = generate_next_tetromino_type(grid_h, grid_w)
-   next_tetromino_display = create_tetromino(grid_h, grid_w, next_tetromino_shape)
+   next_tetromino_shape = generate_next_tetromino_type()
+   next_tetromino_display = create_tetromino(next_tetromino_shape)
    grid.display_tetromino = next_tetromino_display
 
    mixer.init()
    mixer.music.load('music.mp3')
    mixer.music.set_volume(0.05)
-   mixer.music.play()
+   mixer.music.play(-1)
 
    # display a simple menu before opening the game
    # by using the display_game_menu function defined below
@@ -93,12 +81,12 @@ def start():
 
          if do_reset:
             grid.reset_scene() # remove the existing tetrominos in grid
-            first_tetromino_shape = generate_next_tetromino_type(grid_h, grid_w)
-            current_tetromino = create_tetromino(grid_h, grid_w, first_tetromino_shape)
+            first_tetromino_shape = generate_next_tetromino_type()
+            current_tetromino = create_tetromino(first_tetromino_shape)
             grid.current_tetromino = current_tetromino
             # create and show the next tetromino as a display
-            next_tetromino_shape = generate_next_tetromino_type(grid_h, grid_w)
-            next_tetromino_display = create_tetromino(grid_h, grid_w, next_tetromino_shape)
+            next_tetromino_shape = generate_next_tetromino_type()
+            next_tetromino_display = create_tetromino(next_tetromino_shape)
             grid.display_tetromino = next_tetromino_display
             is_game_scene, game_speed = display_game_menu(grid_h, grid_w)
             # clear the queue of the pressed keys for an actual restart
@@ -115,36 +103,58 @@ def start():
                tiles, pos = grid.current_tetromino.get_min_bounded_tile_matrix(True)
                # update the game grid by locking the tiles of the landed tetromino
                game_over = grid.update_grid(tiles, pos)
+               
                # end the main game loop if the game is over
                if game_over:
                   is_game_scene = False
                # create the next tetromino to enter the game grid
                # by using the create_tetromino function defined below
-               current_tetromino = create_tetromino(grid_h, grid_w, next_tetromino_shape)
+               current_tetromino = create_tetromino(next_tetromino_shape)
                grid.current_tetromino = current_tetromino
                # generate the next next tetromino. :D 
-               next_tetromino_shape = generate_next_tetromino_type(grid_h, grid_w)
-               next_tetromino_display = create_tetromino(grid_h, grid_w, next_tetromino_shape)
+               next_tetromino_shape = generate_next_tetromino_type()
+               next_tetromino_display = create_tetromino(next_tetromino_shape)
                grid.display_tetromino = next_tetromino_display
+
             # display the game grid and the current tetromino
             grid.display(game_speed)
+            #display_next_tetromino(grid_h, grid_w, grid, next_tetromino_shape)
       else: # game over scene
          grid.reset_scene() # remove the existing tetrominos in grid
-         first_tetromino_shape = generate_next_tetromino_type(grid_h, grid_w)
-         current_tetromino = create_tetromino(grid_h, grid_w, first_tetromino_shape)
+         first_tetromino_shape = generate_next_tetromino_type()
+         current_tetromino = create_tetromino(first_tetromino_shape)
          grid.current_tetromino = current_tetromino
          # create and show the next tetromino as a display
-         next_tetromino_shape = generate_next_tetromino_type(grid_h, grid_w)
-         next_tetromino_display = create_tetromino(grid_h, grid_w, next_tetromino_shape)
+         next_tetromino_shape = generate_next_tetromino_type()
+         next_tetromino_display = create_tetromino(next_tetromino_shape)
          grid.display_tetromino = next_tetromino_display
          is_game_scene = display_game_over(grid_h, grid_w)
-         if is_game_scene == False:
-            is_game_scene, game_speed = display_game_menu(grid_h, grid_w)
+         
+         is_game_scene, game_speed = display_game_menu(grid_h, grid_w)
          # clear the queue of the pressed keys for an actual restart
          stddraw.clearKeysTyped()
 
+""" another method for displaying the next tetromino that doesn't work as of now
+def display_next_tetromino(grid_height, grid_width, game_grid, tetromino_type):
+   display_tetromino = create_tetromino(tetromino_type)
+   tiles_to_display = display_tetromino.get_min_bounded_tile_matrix(False)
+   # lock the tiles of the current tetromino (tiles_to_lock) on the game grid 
+   n_rows, n_cols = len(tiles_to_display), len(tiles_to_display[0])
+   for col in range(n_cols):
+      for row in range(n_rows):
+         # place each tile onto the game grid
+         if tiles_to_display[row][col] is not None:
+            # compute the position of the tile on the game grid
+            pos = Point()
+            pos.x = 11 + col
+            pos.y = grid_height - 2 + (n_rows - 1) - row
+            tiles_to_display[row][col].draw(position=pos, length=1.1)
+   stddraw.show(1)
+   return True
+"""
+
 # Function for generating the random shape for the next tetromino
-def generate_next_tetromino_type(grid_height, grid_width):
+def generate_next_tetromino_type():
    # type (shape) of the tetromino is determined randomly
    #[ 'I', 'O', 'Z', 'J', 'T', 'L', 'S' ]
    tetromino_types = [ 'I', 'O', 'Z', 'J', 'T', 'L', 'S' ]
@@ -153,197 +163,28 @@ def generate_next_tetromino_type(grid_height, grid_width):
    return random_type
 
 # Function for creating a tetromino to enter the game grid from the given type
-def create_tetromino(grid_height, grid_width, tetromino_type):
+def create_tetromino(tetromino_type):
    # create and return the tetromino
    tetromino = Tetromino(tetromino_type)
    return tetromino
 
-# Function for displaying a simple menu before starting the game
-def display_game_menu(grid_height, grid_width):
-   # colors used for the menu
-   background_color = Color(238, 228, 218)
-   button_color = Color(119, 110, 101)
-   text_color = Color(238, 228, 218)
-   # clear the background canvas to background_color
-   stddraw.clear(background_color)
-   # get the directory in which this python code file is placed
-   current_dir = os.path.dirname(os.path.realpath(__file__))
-   # path of the image file
-   img_file = current_dir + "/images/menu_image.png"
-   # center coordinates to display the image
-   img_center_x, img_center_y = (grid_width - 1) / 2, grid_height - 7
-   # image is represented using the Picture class
-   image_to_display = Picture(img_file)
-   # display the image
-   stddraw.picture(image_to_display, img_center_x, img_center_y)
-   # dimensions of the start game button
-   button_w, button_h = grid_width - 8, 2
-   # coordinates of the bottom left corner of the start game button 
-   button_main_blc_x, button_main_blc_y = img_center_x - button_w / 2, 4
-   # coordinates of the bottom left corner of the game difficulty buttons
-   button_easy_blc_x, button_easy_blc_y     = img_center_x - button_w / 4 - 3, 2
-   button_normal_blc_x, button_normal_blc_y = img_center_x - button_w / 4, 4
-   button_hard_blc_x, button_hard_blc_y     = img_center_x - button_w / 4 + 3, 6
-   # display the start game button as a filled rectangle
-   stddraw.setPenColor(button_color)
-   stddraw.filledRectangle(button_main_blc_x, button_main_blc_y, button_w, button_h)
-   # display the text on the start game button
-   stddraw.setFontFamily("Aharoni")
-   stddraw.setFontSize(40)
-   stddraw.setPenColor(text_color)
-   text_to_display = "Start the Game"
-   stddraw.text(img_center_x, 5, text_to_display)
-   game_speed = 250
-   # menu interaction loop
-   while True:
-      # display the menu and wait for a short time (50 ms)
-      stddraw.show(50)
-      # check if the mouse has been left-clicked on the button
-      if stddraw.mousePressed():
-         # get the x and y coordinates of the location at which the mouse has 
-         # most recently been left-clicked  
-         mouse_x, mouse_y = stddraw.mouseX(), stddraw.mouseY()
-         # check if these coordinates are inside the button
-         if mouse_x >= button_main_blc_x and mouse_x <= button_main_blc_x + button_w:
-            if mouse_y >= button_main_blc_y and mouse_y <= button_main_blc_y + button_h:
-               # difficulty buttons
-               stddraw.filledRectangle(button_main_blc_x, button_main_blc_y, button_w, button_h)
-               stddraw.setPenColor(button_color)
-               stddraw.filledRectangle(button_easy_blc_x, button_easy_blc_y, button_w / 2, button_h)
-               stddraw.filledRectangle(button_normal_blc_x, button_normal_blc_y, button_w / 2, button_h)
-               stddraw.filledRectangle(button_hard_blc_x, button_hard_blc_y, button_w / 2, button_h)
-               stddraw.setFontSize(36)
-               stddraw.setPenColor(text_color)
-               stddraw.text(img_center_x - 3, 3, "Easy")
-               stddraw.text(img_center_x,     5, "Normal")
-               stddraw.text(img_center_x + 3, 7, "Hard")
-               stddraw.show(50)
-               while True:
-                  stddraw.show(50)
-                  # check if the mouse has been left-clicked on the button
-                  if stddraw.mousePressed():
-                     # get the x and y coordinates of the location at which the mouse has 
-                     # most recently been left-clicked  
-                     mouse_x, mouse_y = stddraw.mouseX(), stddraw.mouseY()
-                     # check if these coordinates are inside the button
-                     if mouse_x >= button_easy_blc_x and mouse_x <= button_easy_blc_x + button_w / 2:
-                        if mouse_y >= button_easy_blc_y and mouse_y <= button_easy_blc_y + button_h:
-                           # start the game with the difficulty level "easy"
-                           game_speed = 300
-                           break
-                     if mouse_x >= button_normal_blc_x and mouse_x <= button_normal_blc_x + button_w / 2:
-                        if mouse_y >= button_normal_blc_y and mouse_y <= button_normal_blc_y + button_h:
-                           # start the game with the difficulty level "normal"
-                           game_speed = 250
-                           break
-                     if mouse_x >= button_hard_blc_x and mouse_x <= button_hard_blc_x + button_w / 2:
-                        if mouse_y >= button_hard_blc_y and mouse_y <= button_hard_blc_y + button_h:
-                           # start the game with the difficulty level "hard"
-                           game_speed = 150
-                           break
-               break # break the loop to end the method and start the game
-   return True, game_speed
-
-# Function for displaying a simple menu after the game is over
-def display_game_over(grid_height, grid_width):
-   # colors used for the menu
-   background_color = Color(238, 228, 218)
-   button_color = Color(119, 110, 101)
-   text_color = Color(238, 228, 218)
-   # clear the background canvas to background_color
-   stddraw.clear(background_color)
-   # center coordinates to display the image
-   img_center_x, img_center_y = (grid_width - 1) / 2, grid_height - 7
-   # dimensions of the start game button
-   button_w, button_h = grid_width - 8, 2
-   # coordinates of the bottom left corner of the start game button 
-   button_blc_x, button_blc_y = img_center_x - button_w / 2, 6
-   # display the start game button as a filled rectangle
-   stddraw.setPenColor(button_color)
-   stddraw.filledRectangle(button_blc_x, button_blc_y, button_w, button_h)
-   # display the text on the start game button
-   stddraw.setFontFamily("Aharoni")
-   stddraw.setFontSize(40)
-   stddraw.setPenColor(text_color)
-   text_to_display = "Restart"
-   stddraw.text(img_center_x, 7, text_to_display)
-   text_to_show = "Game Over"
-   stddraw.setPenColor(button_color)
-   stddraw.setFontSize(72)
-   stddraw.text(img_center_x, grid_height*3//4 - 1, text_to_show)
-   stddraw.setFontSize(24)
-   # menu interaction loop
-   while True:
-      # display the menu and wait for a short time (50 ms)
-      stddraw.show(50)
-      # check if the mouse has been left-clicked on the button
-      if stddraw.mousePressed():
-         # get the x and y coordinates of the location at which the mouse has 
-         # most recently been left-clicked  
-         mouse_x, mouse_y = stddraw.mouseX(), stddraw.mouseY()
-         # check if these coordinates are inside the button
-         if mouse_x >= button_blc_x and mouse_x <= button_blc_x + button_w:
-            if mouse_y >= button_blc_y and mouse_y <= button_blc_y + button_h: 
-               do_restart = True
-               break # break the loop to end the method and start the game
-   return True
-
-   #function for pause screen
-def display_pause_menu(grid_height, grid_width):
-   # colors used for the menu
-   background_color = Color(238, 228, 218)
-   button_color = Color(119, 110, 101)
-   text_color = Color(238, 228, 218)
-   # clear the background canvas to background_color
-   stddraw.clear(background_color)
-   # get the directory in which this python code file is placed
-   current_dir = os.path.dirname(os.path.realpath(__file__))
-   # path of the image file
-   img_file = current_dir + "/images/menu_image.png"
-   # center coordinates to display the image
-   img_center_x, img_center_y = (grid_width - 1) / 2, grid_height - 7
-   # image is represented using the Picture class
-   image_to_display = Picture(img_file)
-   # display the image
-   stddraw.picture(image_to_display, img_center_x, img_center_y)
-   # dimensions of the start game button
-   button_w, button_h = grid_width - 8, 2
-   # coordinates of the bottom left corner of the start game button
-   button_blc_x, button_blc_y = img_center_x - button_w / 2, 4
-   button_res_blc_x, button_res_blc_y = img_center_x - button_w / 2, 1
-   # display the start game button as a filled rectangle
-   stddraw.setPenColor(button_color)
-   stddraw.filledRectangle(button_blc_x, button_blc_y, button_w, button_h)
-   stddraw.filledRectangle(button_res_blc_x, button_res_blc_y, button_w, button_h)
-   # display the text on the start game button
-   stddraw.setFontFamily("Aharoni")
-   stddraw.setFontSize(40)
-   stddraw.setPenColor(text_color)
-   text_to_display = "Resume"
-   stddraw.text(img_center_x, 5, text_to_display)
-   stddraw.text(img_center_x, 2, "Restart")
-
-   do_reset = False
-
-   # menu interaction loop
-   while True:
-      # display the menu and wait for a short time (50 ms)
-      stddraw.show(50)
-      # check if the mouse has been left-clicked on the button
-      if stddraw.mousePressed():
-         # get the x and y coordinates of the location at which the mouse has
-         # most recently been left-clicked
-         mouse_x, mouse_y = stddraw.mouseX(), stddraw.mouseY()
-         # check if these coordinates are inside the button
-         if mouse_x >= button_blc_x and mouse_x <= button_blc_x + button_w:
-            if mouse_y >= button_blc_y and mouse_y <= button_blc_y + button_h:
-               do_reset = False
-               break # break the loop to end the method and start the game
-         if mouse_x >= button_res_blc_x and mouse_x <= button_res_blc_x + button_w:
-            if mouse_y >= button_res_blc_y and mouse_y <= button_res_blc_y + button_h:
-               do_reset = True
-               break # break the loop to end the method and start the game
-   return do_reset
+# Function for creating the canvas for the game
+def create_canvas(the_grid_height, the_grid_width, info_grid_width):
+   # set the dimensions of the game grid
+   info_grid_w = info_grid_width
+   grid_h, grid_w = the_grid_height, the_grid_width + info_grid_w
+   # set the size of the drawing canvas
+   canvas_h, canvas_w = 45 * grid_h, 45 * grid_w
+   stddraw.setCanvasSize(canvas_w, canvas_h) 
+   # set the scale of the coordinate system
+   stddraw.setXscale(-1.5, grid_w + 0.5)
+   stddraw.setYscale(-1.5, grid_h + 0.5)
+   # set the dimension values stored and used in the Tetromino class
+   Tetromino.grid_height = grid_h
+   Tetromino.grid_width = grid_w - info_grid_w
+   # create the game grid
+   grid = GameGrid(grid_h, grid_w - info_grid_w)
+   return grid_h, grid_w, grid
 
 # start() function is specified as the entry point (main function) from which 
 # the program starts execution
