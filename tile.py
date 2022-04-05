@@ -24,6 +24,17 @@ class Tile:
 
    # change background color according to the number on the tile
    def update_color(self):
+      """colors = {
+         2: {
+            'color': Color(238, 228, 218),
+            'font': 24
+            },
+      }"""
+
+      
+      """self.font_size = colors[self.number]['font']
+      return colors[self.number]['color']"""
+
       if self.number == 2:
          self.font_size = 24
          return Color(238, 228, 218)
