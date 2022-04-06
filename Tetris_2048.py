@@ -130,7 +130,7 @@ def start():
          # clear the queue of the pressed keys for an actual restart
          stddraw.clearKeysTyped()
 
-# Function for generating the random shape for the next tetromino
+# Function for generating the rando  m shape for the next tetromino
 def generate_next_tetromino_type():
    # type (shape) of the tetromino is determined randomly
    #[ 'I', 'O', 'Z', 'J', 'T', 'L', 'S' ]
