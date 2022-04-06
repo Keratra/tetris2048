@@ -44,11 +44,12 @@ class GameGrid:
             if self.tile_matrix[row][col] is not None:
                if self.tile_matrix[row][col].is_connected == False:
                   self.drop_tile(row, col)
+      self.check_connections()
 
    def check_connections(self):
       # tiles at the ground are connected
       for col in range(self.grid_width):
-         if self.tile_matrix[self.grid_height-1][col] is not None:
+         if self.tile_matrix[0][col] is not None:
             self.tile_matrix[0][col].is_connected = True
       # check all the tiles above the ground to see if they're connected
       for row in range(1, self.grid_height):
@@ -59,48 +60,86 @@ class GameGrid:
                   if self.tile_matrix[row - 1][col].is_connected == True:
                      self.tile_matrix[row][col].is_connected = True
                      continue
-               # for tiles that are next to the left of the grid
-               if col == 0:
-                  if self.tile_matrix[row][col + 1] is not None:
-                     if self.tile_matrix[row][col + 1].is_connected == True:
-                        self.tile_matrix[row][col].is_connected = True
-                        continue
-               # for tiles that are next to the right of the grid
-               if col == self.grid_width - 1:
-                  if self.tile_matrix[row][col - 1] is not None:
-                     if self.tile_matrix[row][col - 1].is_connected == True:
-                        self.tile_matrix[row][col].is_connected = True
-                        continue
+      for row in range(1, self.grid_height):
+         for col in range(1, self.grid_width):
+            if self.tile_matrix[row][col] is None:
+               continue
+            if self.tile_matrix[row][col - 1] is not None:
+                  if self.tile_matrix[row][col - 1].is_connected == True:
+                     self.tile_matrix[row][col].is_connected = True
+                     continue
+      for row in range(1, self.grid_height):
+         for col in range(self.grid_width - 2, 0, -1):
+            if self.tile_matrix[row][col] is None:
+               continue 
+            if self.tile_matrix[row][col + 1] is not None:
+               if self.tile_matrix[row][col + 1].is_connected == True:
+                  self.tile_matrix[row][col].is_connected = True
+                  continue
+               
    
    # drop the specified tile to the ground
    def drop_tile(self, row, col):
       while self.tile_matrix[row-1][col] is None and row-1 >= 0:
+         # if tile is at the left of the grid
+         if col == 0:
+            if self.tile_matrix[row][col+1] is not None:
+               is_right_stable = self.tile_matrix[row][col+1].is_connected
+               if is_right_stable:
+                  return
+         # if tile is at the right of the grid
+         elif col == self.grid_width - 1:
+            if self.tile_matrix[row][col-1] is not None:
+               is_left_stable = self.tile_matrix[row][col-1].is_connected
+               if is_left_stable:
+                  return
+         else:
+            # if there is a tile next to this tile stop the descent
+            is_left_full = self.tile_matrix[row][col-1] is not None
+            is_right_full = self.tile_matrix[row][col+1] is not None
+            if is_left_full:
+               is_left_stable = self.tile_matrix[row][col-1].is_connected
+               if is_left_stable:
+                  return
+            if is_right_full:
+               is_right_stable = self.tile_matrix[row][col+1].is_connected
+               if is_right_stable:
+                  return
          self.tile_matrix[row-1][col] = copy.deepcopy(self.tile_matrix[row][col])
          self.tile_matrix[row][col] = None
          row -= 1
-
-   # lower the tiles in a column above the given row by one row after merging
-   def lower_row(self, row1, col1):
-      for row in range(row1 + 1, self.grid_height):
-         if self.tile_matrix[row][col1] is not None:
-            self.tile_matrix[row-1][col1] = self.tile_matrix[row][col1]
-            self.tile_matrix[row][col1] = None
+         self.check_connections()
 
    def merge_tiles(self, row1,col1):
-      if self.tile_matrix[row1][col1] is not None:
-         if self.tile_matrix[row1][col1] is not None and self.tile_matrix[row1+1][col1] is not None:
-            if row1+1 <= self.grid_height and self.tile_matrix[row1][col1].number == self.tile_matrix[row1+1][col1].number:
-               self.tile_matrix[row1][col1].number *= 2
-               self.score += self.tile_matrix[row1][col1].number
-               self.tile_matrix[row1+1][col1] = None
-               self.lower_row(row1+1, col1)
-               while self.tile_matrix[row1-1][col1] is None and row1-1 >= 0:
-                  self.tile_matrix[row1-1][col1] = Tile()
-                  self.tile_matrix[row1-1][col1].number = self.tile_matrix[row1][col1].number
-                  self.tile_matrix[row1][col1] = None
-                  row1 -= 1
-                  self.lower_row(row1+1, col1)
-               return True
+      if self.tile_matrix[row1][col1] is None:
+         return
+      if self.tile_matrix[row1][col1] is not None and self.tile_matrix[row1+1][col1] is not None:
+         # if the numbers match, merge the tiles
+         if row1+1 <= self.grid_height and self.tile_matrix[row1][col1].number == self.tile_matrix[row1+1][col1].number:
+            self.tile_matrix[row1][col1].number *= 2
+            self.score += self.tile_matrix[row1][col1].number
+            self.tile_matrix[row1+1][col1] = None
+            self.check_connections()
+            while self.tile_matrix[row1-1][col1] is None and row1-1 >= 0:
+               # if tile is at the left of the grid
+               if col1 == 0:
+                  if self.tile_matrix[row1][col1+1] is not None:
+                     break
+               # if tile is at the right of the grid
+               if col1 == self.grid_width - 1:
+                  if self.tile_matrix[row1][col1-1] is not None:
+                     break
+               # if there is a tile next to this tile stop the descent
+               is_left_full = self.tile_matrix[row1][col1-1] is not None
+               is_right_full = self.tile_matrix[row1][col1+1] is not None
+               if is_left_full or is_right_full:
+                  break
+               self.tile_matrix[row1-1][col1] = Tile()
+               self.tile_matrix[row1-1][col1].number = self.tile_matrix[row1][col1].number
+               self.tile_matrix[row1][col1] = None
+               row1 -= 1
+               self.check_connections()
+            return True
       return False
 
    def merge_possible(self):

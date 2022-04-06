@@ -2,11 +2,8 @@ import lib.stddraw as stddraw  # stddraw is used as a basic graphics library
 from game_grid import GameGrid # the class for modeling the game grid
 from tetromino import Tetromino # the class for modeling the tetrominoes
 import random # used for creating tetrominoes with random types/shapes
-import numpy as np
-from tile import Tile
-from point import Point
 from scenes import *
-from pygame import mixer
+from playsound import playsound
 
 # Group: Heavenly Celestials
 # ->    Kerem Kaya
@@ -30,10 +27,10 @@ def start():
    next_tetromino_display = create_tetromino(next_tetromino_shape)
    grid.display_tetromino = next_tetromino_display
 
-   mixer.init()
-   mixer.music.load('music.mp3')
-   mixer.music.set_volume(0.05)
-   mixer.music.play(-1)
+   # if the game doesn't start, then please remove this line
+   # this is because there is a possiblity that the line below only works on Windows
+   # play music in the background
+   #playsound('music.mp3', False)
 
    # display a simple menu before opening the game
    # by using the display_game_menu function defined below
@@ -115,7 +112,6 @@ def start():
                next_tetromino_shape = generate_next_tetromino_type()
                next_tetromino_display = create_tetromino(next_tetromino_shape)
                grid.display_tetromino = next_tetromino_display
-
             # display the game grid and the current tetromino
             grid.display(game_speed)
             #display_next_tetromino(grid_h, grid_w, grid, next_tetromino_shape)
