@@ -141,7 +141,7 @@ class GameGrid:
                self.check_connections()
             return True
       return False
-
+#this function is for checking whether tiles can be merged or not
    def merge_possible(self):
       for row in range(self.grid_height - 1):
          for col in range(self.grid_width):
@@ -187,7 +187,7 @@ class GameGrid:
       self.draw_boundaries()
       # show the resulting drawing with a pause duration = 250 ms
       stddraw.show(speed)
-   
+#this method is for displaying the score on the game screen   
    def display_score(self):
       stddraw.setFontSize(28)
       stddraw.setPenColor(Color(69, 60, 51))
