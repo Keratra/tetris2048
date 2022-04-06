@@ -32,7 +32,7 @@ class GameGrid:
       # thickness values used for the grid lines and the boundaries
       self.line_thickness = 0.008
       self.box_thickness = 1 * self.line_thickness
-
+#eleminating the floating pieces with checking the tiles.
    def eliminate_floating_pieces(self):
       for row in range(self.grid_height):
          for col in range(self.grid_width):
@@ -45,7 +45,7 @@ class GameGrid:
                if self.tile_matrix[row][col].is_connected == False:
                   self.drop_tile(row, col)
       self.check_connections()
-
+#method for make connect to all tiles if its proper.
    def check_connections(self):
       # tiles at the ground are connected
       for col in range(self.grid_width):
