@@ -233,6 +233,8 @@ class GameGrid:
             if self.tile_matrix[row][col] is not None:
                self.tile_matrix[row][col].draw(Point(col, row))
       self.display_score()
+      stddraw.setFontFamily("Aharoni")
+      stddraw.text(self.grid_width, self.grid_height - 1, "P")
       # draw the inner lines of the grid
       stddraw.setPenColor(self.line_color)
       stddraw.setPenRadius(self.line_thickness)
