@@ -30,7 +30,7 @@ def start():
    # if the game doesn't start, then please remove this line
    # this is because there is a possiblity that the line below only works on Windows
    # play music in the background
-   #playsound('music.mp3', False)
+   playsound('music.mp3', False)
 
    # display a simple menu before opening the game
    # by using the display_game_menu function defined below
