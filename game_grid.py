@@ -177,8 +177,10 @@ class GameGrid:
       self.tile_matrix = np.full((self.grid_height, self.grid_width), None)
       self.current_tetromino = None
       self.display_tetromino = None
+      temp_score = self.score
       self.score = 0
       self.game_over = False
+      return temp_score
 
    # Method used for displaying the game grid
    def display(self, speed=100):
@@ -186,6 +188,13 @@ class GameGrid:
       stddraw.clear(Color(169, 150, 151))
       # draw the game grid
       self.draw_grid()
+      # the merge process
+      self.eliminate_floating_pieces()
+      is_merge_possible, row1, col1 = self.merge_possible()
+      while is_merge_possible:
+         self.merge_tiles(row1, col1)
+         is_merge_possible, row1, col1 = self.merge_possible()
+         self.eliminate_floating_pieces()
       # draw the current/active tetromino if it is not None (the case when the 
       # game grid is updated)
       if self.current_tetromino is not None:
@@ -312,15 +321,14 @@ class GameGrid:
                # the game is over if any placed tile is above the game grid
                else:
                   self.game_over = True
-                  self.score = 0
 
-      # the merge process
+      """ # the merge process
       self.eliminate_floating_pieces()
       is_merge_possible, row1, col1 = self.merge_possible()
       while is_merge_possible:
          self.merge_tiles(row1, col1)
-         self.eliminate_floating_pieces()
          is_merge_possible, row1, col1 = self.merge_possible()
+         self.eliminate_floating_pieces() """
       # after merging possible tiles, clear full lines
       self.remove_full_rows()
       # return the game_over flag

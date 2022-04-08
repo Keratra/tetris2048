@@ -101,7 +101,7 @@ def display_game_menu(grid_height, grid_width):
    return True, game_speed
 
 # Function for displaying a simple menu after the game is over
-def display_game_over(grid_height, grid_width):
+def display_game_over(grid_height, grid_width, current_score):
    # colors used for the menu
    background_color = Color(238, 228, 218)
    button_color = Color(119, 110, 101)
@@ -128,6 +128,25 @@ def display_game_over(grid_height, grid_width):
    stddraw.setFontSize(72)
    stddraw.text(img_center_x, grid_height*3//4 - 1, text_to_show)
    stddraw.setFontSize(24)
+   
+   # check if highscore.txt exists, if not create it
+   if not os.path.exists("highscore.txt"):
+      with open("highscore.txt", "w") as f:
+         f.write("0")
+   # read the highscore from the file
+   with open("highscore.txt", "r") as f:
+      highscore = int(f.read())
+
+   # check if the current score is greater than the highscore
+   if current_score > highscore:
+      with open("highscore.txt", "w") as f:
+            # update the highscore
+            highscore = current_score
+            # write the new highscore to the file
+            f.write(str(highscore))
+   stddraw.setFontSize(36)
+   stddraw.text(img_center_x, grid_height*3//4 - 3.5, "Score: " + str(current_score))
+   stddraw.text(img_center_x, grid_height*3//4 - 4.5, "High Score: " + str(highscore))
    # menu interaction loop
    while True:
       # display the menu and wait for a short time (50 ms)
@@ -158,16 +177,16 @@ def display_pause_menu(grid_height, grid_width):
    img_file = current_dir + "/images/menu_image.png"
    # center coordinates to display the image
    img_center_x, img_center_y = (grid_width - 1) / 2, grid_height - 7
-   # image is represented using the Picture class
-   image_to_display = Picture(img_file)
-   # display the image
-   stddraw.picture(image_to_display, img_center_x, img_center_y)
    # dimensions of the start game button
    button_w, button_h = grid_width - 8, 2
    # coordinates of the bottom left corner of the start game button
    button_blc_x, button_blc_y = img_center_x - button_w / 2, 4
    button_res_blc_x, button_res_blc_y = img_center_x - button_w / 2, 1
    # display the start game button as a filled rectangle
+
+   stddraw.setFontSize(144)
+   stddraw.text(img_center_x, img_center_y, "Paused")
+
    stddraw.setPenColor(button_color)
    stddraw.filledRectangle(button_blc_x, button_blc_y, button_w, button_h)
    stddraw.filledRectangle(button_res_blc_x, button_res_blc_y, button_w, button_h)
