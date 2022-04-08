@@ -34,10 +34,6 @@ class GameGrid:
       self.box_thickness = 1 * self.line_thickness
 
    def eliminate_floating_pieces(self):
-      for row in range(self.grid_height):
-         for col in range(self.grid_width):
-            if self.tile_matrix[row][col] is not None:
-               self.tile_matrix[row][col].is_connected = False
       self.check_connections()
       for row in range(self.grid_height):
          for col in range(self.grid_width):
@@ -47,10 +43,24 @@ class GameGrid:
       self.check_connections()
 
    def check_connections(self):
+      # reset all the tiles
+      for row in range(self.grid_height):
+         for col in range(self.grid_width):
+            if self.tile_matrix[row][col] is not None:
+               self.tile_matrix[row][col].is_connected = False
       # tiles at the ground are connected
       for col in range(self.grid_width):
          if self.tile_matrix[0][col] is not None:
             self.tile_matrix[0][col].is_connected = True
+      for x in range(10):
+         # check all the tiles above the ground to see if they're connected
+         self.up_sweep()
+         # check tiles from left to right
+         self.left_sweep()
+         # check tiles from right to left
+         self.right_sweep()
+   
+   def up_sweep(self):
       # check all the tiles above the ground to see if they're connected
       for row in range(1, self.grid_height):
          for col in range(self.grid_width):
@@ -59,7 +69,9 @@ class GameGrid:
                if self.tile_matrix[row - 1][col] is not None:
                   if self.tile_matrix[row - 1][col].is_connected == True:
                      self.tile_matrix[row][col].is_connected = True
-                     continue
+
+   def left_sweep(self):
+      # check tiles from left to right
       for row in range(1, self.grid_height):
          for col in range(1, self.grid_width):
             if self.tile_matrix[row][col] is None:
@@ -67,16 +79,16 @@ class GameGrid:
             if self.tile_matrix[row][col - 1] is not None:
                   if self.tile_matrix[row][col - 1].is_connected == True:
                      self.tile_matrix[row][col].is_connected = True
-                     continue
+   
+   def right_sweep(self):
+      # check tiles from right to left
       for row in range(1, self.grid_height):
-         for col in range(self.grid_width - 2, 0, -1):
+         for col in range(self.grid_width - 2, -1, -1):
             if self.tile_matrix[row][col] is None:
                continue 
             if self.tile_matrix[row][col + 1] is not None:
                if self.tile_matrix[row][col + 1].is_connected == True:
                   self.tile_matrix[row][col].is_connected = True
-                  continue
-               
    
    # drop the specified tile to the ground
    def drop_tile(self, row, col):
@@ -111,6 +123,7 @@ class GameGrid:
          self.check_connections()
 
    def merge_tiles(self, row1,col1):
+      self.check_connections()
       if self.tile_matrix[row1][col1] is None:
          return
       if self.tile_matrix[row1][col1] is not None and self.tile_matrix[row1+1][col1] is not None:
@@ -121,6 +134,7 @@ class GameGrid:
             self.tile_matrix[row1+1][col1] = None
             self.check_connections()
             while self.tile_matrix[row1-1][col1] is None and row1-1 >= 0:
+               self.check_connections()
                # if tile is at the left of the grid
                if col1 == 0:
                   if self.tile_matrix[row1][col1+1] is not None:
@@ -305,8 +319,8 @@ class GameGrid:
       is_merge_possible, row1, col1 = self.merge_possible()
       while is_merge_possible:
          self.merge_tiles(row1, col1)
-         is_merge_possible, row1, col1 = self.merge_possible()
          self.eliminate_floating_pieces()
+         is_merge_possible, row1, col1 = self.merge_possible()
       # after merging possible tiles, clear full lines
       self.remove_full_rows()
       # return the game_over flag
