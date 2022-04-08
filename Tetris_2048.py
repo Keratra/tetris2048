@@ -133,7 +133,6 @@ def start():
 # Function for generating the rando  m shape for the next tetromino
 def generate_next_tetromino_type():
    # type (shape) of the tetromino is determined randomly
-   #[ 'I', 'O', 'Z', 'J', 'T', 'L', 'S' ]
    tetromino_types = [ 'I', 'O', 'Z', 'J', 'T', 'L', 'S' ]
    random_index = random.randint(0, len(tetromino_types) - 1)
    random_type = tetromino_types[random_index]

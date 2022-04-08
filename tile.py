@@ -21,53 +21,59 @@ class Tile:
       self.box_color = Color(119, 110, 101) # box (boundary) color
       self.font_size = 24
       self.is_connected = False
-
-   # change background color according to the number on the tile
-   def update_color(self):
-      """colors = {
+      self.colors = {
          2: {
             'color': Color(238, 228, 218),
             'font': 24
             },
-      }"""
+         4: {
+            'color': Color(238, 225, 201),
+            'font': 24
+            },
+         8: {
+            'color': Color(243, 178, 122),
+            'font': 24
+            },
+         16: {
+            'color': Color(246, 150, 100),
+            'font': 24
+            },
+         32: {
+            'color': Color(247, 124, 95),
+            'font': 24
+            },
+         64: {
+            'color': Color(247, 95, 59),
+            'font': 24
+            },
+         128: {
+            'color': Color(237, 208, 115),
+            'font': 20
+            },
+         256: {
+            'color': Color(237, 204, 98),
+            'font': 20
+            },
+         512: {
+            'color': Color(237, 201, 80),
+            'font': 20
+            },
+         1024: {
+            'color': Color(237, 197, 63),
+            'font': 16
+            },
+         2048: {
+            'color': Color(237, 194, 46),
+            'font': 16
+            }
+      }
 
-      
-      """self.font_size = colors[self.number]['font']
-      return colors[self.number]['color']"""
+   # change background color according to the number on the tile
+   def update_color(self):
 
-      if self.number == 2:
-         self.font_size = 24
-         return Color(238, 228, 218)
-      elif self.number == 4:
-         self.font_size = 24
-         return Color(238, 225, 201)
-      elif self.number == 8:
-         self.font_size = 24
-         return Color(243, 178, 122)
-      elif self.number == 16:
-         self.font_size = 24
-         return Color(246, 150, 100)
-      elif self.number == 32:
-         self.font_size = 24
-         return Color(247, 124, 95)
-      elif self.number == 64:
-         self.font_size = 24
-         return Color(247, 95, 59)
-      elif self.number == 128:
-         self.font_size = 20
-         return Color(237, 208, 115)
-      elif self.number == 256:
-         self.font_size = 20
-         return Color(237, 204, 98)
-      elif self.number == 512:
-         self.font_size = 20
-         return Color(237, 201, 80)
-      elif self.number == 1024:
-         self.font_size = 16
-         return Color(237, 197, 63)
-      elif self.number == 2048:
-         self.font_size = 16
-         return Color(237, 194, 46)
+      if self.number in self.colors:
+         self.font_size = self.colors[self.number]['font']
+         return self.colors[self.number]['color']
       else:
          self.foreground_color = Color(240,240,240)
          self.font_size = 16
